@@ -6,6 +6,13 @@ var path = require('path');
 var stew = require('broccoli-stew');
 var mergeTrees = require('ember-cli/lib/broccoli/merge-trees');
 
+
+//module.exports = {
+//  name: 'ember-cli-bundle-rollup',
+//};
+//
+//return;
+
 var oldjavascript = EmberApp.prototype.javascript;
 EmberApp.prototype.javascript = function() {
 	var tree = this.appAndDependencies();
@@ -20,10 +27,10 @@ EmberApp.prototype.javascript = function() {
 	var fs = require('fs');
 	var amd = require('rollup-plugin-amd');
 	
-	//tree = stew.find([tree, stew.find(__dirname, 'lib/**')]);
+	tree = stew.find([tree, stew.mv(stew.rename('node_modules/ember/packages/', '/lib/', '/'), 'test-es6/')]);
 	//return tree;
-	tree = stew.mv(tree, 'vendor/modules/', '/');
-//	tree = stew.debug(tree, 'rollup2');
+	tree = stew.mv(tree, 'vendor/modules/', 'test-es6/');
+	//tree = stew.debug(tree, 'rollup3');
 	
 	return new Rollup(tree, {
 		rollup: {
@@ -48,8 +55,8 @@ EmberApp.prototype.javascript = function() {
 						var mapping = {
 							'./config/environment': '../vendor/ember-cli-bundle-rollup/config.js',
 //							'ember': '../bower_components/ember/ember.js',
-							'ember': '../vendor/ember-cli-bundle-rollup/ember.js',
-							'ember-load-initializers': '../ember-load-initializers/index.js',
+							//'ember': '../vendor/ember-cli-bundle-rollup/ember.js',
+//							'ember-load-initializers': '..ember-load-initializers/index.js',
 						};
 						
 						if (mapping[id]) {
@@ -58,10 +65,21 @@ EmberApp.prototype.javascript = function() {
 //							console.log(fs.existsSync(path.resolve(loader, '../../')));
 							//console.log(fs.existsSync(path.resolve(loader, '../../vendor')));
 							return path.resolve(loader, '..', mapping[id]);
-						} else
+						} else {
+//							if (loader) {
+//								var file = path.resolve(loader, '..', id, 'index.js');
+//								console.log(file, fs.existsSync(file));
+//							}
 							return null;
+						}
 					}
 				},
+				nodeResolve({
+					jsnext: true,
+					main: true,
+					browser: true,
+				}),
+				commonjs(),
 			],
 			targets: [
 				{
