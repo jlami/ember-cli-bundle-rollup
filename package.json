@@ -43,10 +43,12 @@
     "ember-addon"
   ],
   "dependencies": {
-  	"ember": "emberjs/ember.js#2.8.3",
+  	"ember": "emberjs/ember.js#2.10.0",
     "ember-cli-babel": "^5.1.6",
     "rollup": "^0.36.4",
-    "rollup-plugin-node-resolve": "^2.0.0"
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "rsvp": "~3.2.1",
+    "ember-cli-preprocess-registry": "^2.0.0"
   },
   "peerDependencies": {
       "ember-cli": "2.8.0"
