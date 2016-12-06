@@ -26,12 +26,18 @@ EmberApp.prototype.javascript = function() {
 	var commonjs = require('rollup-plugin-commonjs');
 	var fs = require('fs');
 	var amd = require('rollup-plugin-amd');
+	var preprocessTemplates = require('ember-cli-preprocess-registry/preprocessors').preprocessTemplates;
 	
-	tree = stew.find([tree, stew.mv(stew.rename('node_modules/ember/packages/', '/lib/', '/'), 'test-es6/')]);
+	tree = stew.find([tree, stew.mv(stew.rename('node_modules/ember-source/packages/', '/lib/', '/'), 'test-es6/')]);
 	//return tree;
 	tree = stew.mv(tree, 'vendor/modules/', 'test-es6/');
-	//tree = stew.debug(tree, 'rollup3');
-	
+	let baseurl = null;
+	tree = preprocessTemplates(tree, {
+	    registry: this.registry,
+	    annotation: 'Rollup (templates)'
+	  });
+	//tree = stew.debug(tree, 'rollup4');
+  
 	return new Rollup(tree, {
 		rollup: {
 			entry: 'test-es6/app.js',
@@ -49,9 +55,17 @@ EmberApp.prototype.javascript = function() {
 //			return null;
 //		},
 			plugins: [
-				amd(),
+//				amd(),
 				{
+					options: function(options) {
+						baseurl = path.dirname(options.entry);
+						return options;
+					},
 					resolveId: function(id, loader) {
+						if (id == './version' && path.dirname(path.relative(baseurl, loader)) === 'ember') {
+							return path.resolve(loader, '../../../vendor/ember-cli-bundle-rollup/version.js');
+						}
+						
 						var mapping = {
 							'./config/environment': '../vendor/ember-cli-bundle-rollup/config.js',
 //							'ember': '../bower_components/ember/ember.js',
@@ -65,6 +79,25 @@ EmberApp.prototype.javascript = function() {
 //							console.log(fs.existsSync(path.resolve(loader, '../../')));
 							//console.log(fs.existsSync(path.resolve(loader, '../../vendor')));
 							return path.resolve(loader, '..', mapping[id]);
+						} else if (loader) {
+							let baseFile;
+							if (id[0] !== '.') {
+								baseFile = path.resolve(baseurl, id)
+							} else {
+								baseFile = path.resolve(loader, '..', id);
+							}
+							if (fs.existsSync(baseFile + '.js')) {
+								//console.log('found file ' + id);
+								return baseFile + '.js';
+							} else {
+								let test = path.join(baseFile, 'index.js')
+								if (fs.existsSync(test)) {
+									//console.log('found index ' + id);
+									return test;
+								} else {
+									return null;
+								}
+							}
 						} else {
 //							if (loader) {
 //								var file = path.resolve(loader, '..', id, 'index.js');
@@ -78,6 +111,7 @@ EmberApp.prototype.javascript = function() {
 					jsnext: true,
 					main: true,
 					browser: true,
+					skip: true,
 				}),
 				commonjs(),
 			],
