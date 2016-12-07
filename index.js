@@ -28,19 +28,24 @@ EmberApp.prototype.javascript = function() {
 	var amd = require('rollup-plugin-amd');
 	var preprocessTemplates = require('ember-cli-preprocess-registry/preprocessors').preprocessTemplates;
 	
-	tree = stew.find([tree, stew.mv(stew.rename('node_modules/ember-source/packages/', '/lib/', '/'), 'test-es6/')]);
-	//return tree;
+	var packages = stew.find([stew.log('node_modules/glimmer-engine/dist/es6/'), stew.rename('node_modules/ember-source/packages/', '/lib/', '/')]);
+	
+	tree = stew.find([tree, stew.mv(packages, 'test-es6/')]);
+	
 	tree = stew.mv(tree, 'vendor/modules/', 'test-es6/');
 	let baseurl = null;
 	tree = preprocessTemplates(tree, {
 	    registry: this.registry,
 	    annotation: 'Rollup (templates)'
 	  });
-	//tree = stew.debug(tree, 'rollup4');
+	tree = stew.debug(tree, 'rollup4');
+	//return tree;
   
 	return new Rollup(tree, {
 		rollup: {
 			entry: 'test-es6/app.js',
+			globals: {'require': 'require'},
+			sourceMap: true,
 			//dest: 'test-es6/test-es6.es6.js',
 //			plugins: [
 //				nodeResolve({
@@ -59,15 +64,20 @@ EmberApp.prototype.javascript = function() {
 				{
 					options: function(options) {
 						baseurl = path.dirname(options.entry);
+						options.banner = 'window.EmberENV = {"FEATURES":{}};' + fs.readFileSync(path.resolve(baseurl, '../vendor/loader/loader.js'));
+						options.footer = 'testes6.create({"name":"test-es6","version":"0.0.0+2f11d37b"});';
 						return options;
 					},
 					resolveId: function(id, loader) {
+						//if (id == 'backburner') return 'backburner.js';
+						
 						if (id == './version' && path.dirname(path.relative(baseurl, loader)) === 'ember') {
 							return path.resolve(loader, '../../../vendor/ember-cli-bundle-rollup/version.js');
 						}
 						
 						var mapping = {
-							'./config/environment': '../vendor/ember-cli-bundle-rollup/config.js',
+							'ember/features' : 'vendor/ember-cli-bundle-rollup/features.js',
+							'./config/environment': 'vendor/ember-cli-bundle-rollup/config.js',
 //							'ember': '../bower_components/ember/ember.js',
 							//'ember': '../vendor/ember-cli-bundle-rollup/ember.js',
 //							'ember-load-initializers': '..ember-load-initializers/index.js',
@@ -78,7 +88,7 @@ EmberApp.prototype.javascript = function() {
 //							console.log(fs.existsSync(path.resolve(loader, '..')));
 //							console.log(fs.existsSync(path.resolve(loader, '../../')));
 							//console.log(fs.existsSync(path.resolve(loader, '../../vendor')));
-							return path.resolve(loader, '..', mapping[id]);
+							return path.resolve(baseurl, '..', mapping[id]);
 						} else if (loader) {
 							let baseFile;
 							if (id[0] !== '.') {
@@ -117,13 +127,17 @@ EmberApp.prototype.javascript = function() {
 			],
 			targets: [
 				{
-					dest: 'assets/test-es6.js',
+					dest: 'assets/test-es6.amd.js',
 					format: 'amd',
 				},
 				{
-					dest: 'assets/test.es6.iife.js',
+					dest: 'assets/test-es6.js',
 					format: 'iife',
-					moduleName: 'test-es6',
+					moduleName: 'testes6',
+				},
+				{
+					dest: 'assets/test-es6.es.js',
+					format: 'es',
 				}
 			],
 //			external: function(id) {
