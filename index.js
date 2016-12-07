@@ -28,11 +28,14 @@ EmberApp.prototype.javascript = function() {
 	var amd = require('rollup-plugin-amd');
 	var preprocessTemplates = require('ember-cli-preprocess-registry/preprocessors').preprocessTemplates;
 	
-	var packages = stew.find([stew.log('node_modules/glimmer-engine/dist/es6/'), stew.rename('node_modules/ember-source/packages/', '/lib/', '/')]);
+	var packages = stew.find([stew.find('node_modules/glimmer-engine/dist/es6/', { desDir: ''}), stew.rename('node_modules/ember-source/packages/', '/lib/', '/')]);
 	
 	tree = stew.find([tree, stew.mv(packages, 'test-es6/')]);
-	
+	let tree2 = stew.find([__dirname + '/lib'], { destDir: 'test-es6'});
+		
 	tree = stew.mv(tree, 'vendor/modules/', 'test-es6/');
+	tree = stew.find([tree, tree2], { overwrite: true });
+
 	let baseurl = null;
 	tree = preprocessTemplates(tree, {
 	    registry: this.registry,
@@ -63,21 +66,23 @@ EmberApp.prototype.javascript = function() {
 //				amd(),
 				{
 					options: function(options) {
+						console.log(options.entry);
 						baseurl = path.dirname(options.entry);
 						options.banner = 'window.EmberENV = {"FEATURES":{}};' + fs.readFileSync(path.resolve(baseurl, '../vendor/loader/loader.js'));
 						options.footer = 'testes6.create({"name":"test-es6","version":"0.0.0+2f11d37b"});';
 						return options;
 					},
 					resolveId: function(id, loader) {
+						//if (id == 'fs' || id == 'path') console.log(id, loader);
 						//if (id == 'backburner') return 'backburner.js';
 						
 						if (id == './version' && path.dirname(path.relative(baseurl, loader)) === 'ember') {
-							return path.resolve(loader, '../../../vendor/ember-cli-bundle-rollup/version.js');
+							return path.resolve(baseurl, 'version.js');
 						}
 						
 						var mapping = {
-							'ember/features' : 'vendor/ember-cli-bundle-rollup/features.js',
-							'./config/environment': 'vendor/ember-cli-bundle-rollup/config.js',
+							'ember/features' : 'features.js',
+							'./config/environment': 'config.js',
 //							'ember': '../bower_components/ember/ember.js',
 							//'ember': '../vendor/ember-cli-bundle-rollup/ember.js',
 //							'ember-load-initializers': '..ember-load-initializers/index.js',
@@ -88,7 +93,7 @@ EmberApp.prototype.javascript = function() {
 //							console.log(fs.existsSync(path.resolve(loader, '..')));
 //							console.log(fs.existsSync(path.resolve(loader, '../../')));
 							//console.log(fs.existsSync(path.resolve(loader, '../../vendor')));
-							return path.resolve(baseurl, '..', mapping[id]);
+							return path.resolve(baseurl, '.', mapping[id]);
 						} else if (loader) {
 							let baseFile;
 							if (id[0] !== '.') {
@@ -96,6 +101,7 @@ EmberApp.prototype.javascript = function() {
 							} else {
 								baseFile = path.resolve(loader, '..', id);
 							}
+							
 							if (fs.existsSync(baseFile + '.js')) {
 								//console.log('found file ' + id);
 								return baseFile + '.js';
@@ -195,7 +201,7 @@ EmberApp.prototype._addonTree = function() {
 module.exports = {
   name: 'ember-cli-bundle-rollup',
   
-  treeForVendor() {
-  	return stew.log(stew.mv(path.join(__dirname, 'lib'), 'ember-cli-bundle-rollup'));//stew.find(__dirname, 'lib/**'));
-  },
+//  treeForVendor() {
+//  	return stew.log(stew.mv(path.join(__dirname, 'lib'), 'ember-cli-bundle-rollup'));//stew.find(__dirname, 'lib/**'));
+//  },
 };
