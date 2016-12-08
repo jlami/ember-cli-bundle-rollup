@@ -130,21 +130,22 @@ EmberApp.prototype.javascript = function() {
 					skip: true,
 				}),
 				commonjs(),
+				require('rollup-plugin-uglify')({}, require('uglify-js').minify),
 			],
 			targets: [
-				{
-					dest: 'assets/test-es6.amd.js',
-					format: 'amd',
-				},
+//				{
+//					dest: 'assets/test-es6.amd.js',
+//					format: 'amd',
+//				},
 				{
 					dest: 'assets/test-es6.js',
 					format: 'iife',
 					moduleName: 'testes6',
 				},
-				{
-					dest: 'assets/test-es6.es.js',
-					format: 'es',
-				}
+//				{
+//					dest: 'assets/test-es6.es.js',
+//					format: 'es',
+//				}
 			],
 //			external: function(id) {
 //				var res = path.resolve.bind(this.scope.declarations.module.id);
