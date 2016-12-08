@@ -19,7 +19,7 @@ EmberApp.prototype.javascript = function() {
 	
 	//return tree;
 	
-	console.log(this.options.outputPaths.app.js);
+	//console.log(this.options.outputPaths.app.js);
 	//return oldjavascript.apply(this, arguments);
 	var Rollup = require('broccoli-rollup');
 	var nodeResolve = require('rollup-plugin-node-resolve');
@@ -66,7 +66,7 @@ EmberApp.prototype.javascript = function() {
 //				amd(),
 				{
 					options: function(options) {
-						console.log(options.entry);
+						//console.log(options.entry);
 						baseurl = path.dirname(options.entry);
 						options.banner = 'window.EmberENV = {"FEATURES":{}};' + fs.readFileSync(path.resolve(baseurl, '../vendor/loader/loader.js'));
 						options.footer = 'testes6.create({"name":"test-es6","version":"0.0.0+2f11d37b"});';
@@ -76,7 +76,7 @@ EmberApp.prototype.javascript = function() {
 						//if (id == 'fs' || id == 'path') console.log(id, loader);
 						//if (id == 'backburner') return 'backburner.js';
 						
-						if (id == './version' && path.dirname(path.relative(baseurl, loader)) === 'ember') {
+						if (id == 'ember/version' || id == './version' && path.dirname(path.relative(baseurl, loader)) === 'ember') {
 							return path.resolve(baseurl, 'version.js');
 						}
 						
