@@ -59,7 +59,9 @@
       "dag-map": "^2.0.1",
   	  "ember-source": "emberjs/ember.js#v2.10.0",
       "ember-cli-preprocess-registry": "^3.0.0",
-      "glimmer-engine": "^0.19.2"
+      "glimmer-engine": "^0.19.2",
+      "route-recognizer": "^0.2.8",
+      "router_js": "^1.2.4",
   },
   "ember-addon": {
     "configPath": "tests/dummy/config"
