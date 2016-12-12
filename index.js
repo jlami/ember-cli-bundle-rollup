@@ -3,15 +3,46 @@
 
 var EmberApp = require('ember-cli/lib/broccoli/ember-app');
 var path = require('path');
+var fs = require('fs');
 var stew = require('broccoli-stew');
 var mergeTrees = require('ember-cli/lib/broccoli/merge-trees');
-
+var CachingWriter = require('broccoli-caching-writer');
 
 //module.exports = {
 //  name: 'ember-cli-bundle-rollup',
 //};
 //
 //return;
+
+RollupInitializers.prototype = Object.create(CachingWriter.prototype);
+RollupInitializers.prototype.constructor = RollupInitializers;
+function RollupInitializers(tree, options) {
+	CachingWriter.call(this, [tree], {
+	    name: options.name,
+	    annotation: options.annotation,
+	    persistentOutput: false
+	  });
+	//return new RollupInitializers(tree, options);
+}
+
+RollupInitializers.prototype.build = function() {
+	let output = "";
+	let imports = "";
+	let counter = 0;
+	
+	let inputFiles = this.listEntries();
+	inputFiles.forEach(function(key) {
+		if (!key.relativePath.endsWith(".js")) return;//TODO: to es5
+		let isInstance = key.relativePath.includes("/instance-");
+		let name = "initializer" + (++counter);
+		imports += "import " + name + " from '" + key.relativePath.slice(0, -3) + "';\n";
+		
+		output += "\t{isInstance: " + isInstance + ", export: " + name + "},\n";
+	});
+	
+	//console.log(imports + "\nexport default [\n" + output + "];");
+	fs.writeFileSync(path.join(this.outputPath, 'files.js'), imports + "\n export default [\n" + output + "];");
+};
 
 var oldjavascript = EmberApp.prototype.javascript;
 EmberApp.prototype.javascript = function() {
@@ -24,7 +55,6 @@ EmberApp.prototype.javascript = function() {
 	var Rollup = require('broccoli-rollup');
 	var nodeResolve = require('rollup-plugin-node-resolve');
 	var commonjs = require('rollup-plugin-commonjs');
-	var fs = require('fs');
 	var amd = require('rollup-plugin-amd');
 	var preprocessTemplates = require('ember-cli-preprocess-registry/preprocessors').preprocessTemplates;
 	
@@ -42,6 +72,11 @@ EmberApp.prototype.javascript = function() {
 	    registry: this.registry,
 	    annotation: 'Rollup (templates)'
 	  });
+	  
+	let init = new RollupInitializers(stew.find(tree, { include: ['test-es6/instance-initializers/*.js', 'test-es6/initializers/*.js'] }), {});
+//	init = stew.debug(init, 'rollup-init');
+	init = stew.mv(init, 'ember-rollup-initializers');
+	tree = stew.find([tree, init]);
 	tree = stew.debug(tree, 'rollup4');
 	//return tree;
 	
@@ -87,7 +122,7 @@ EmberApp.prototype.javascript = function() {
 						
 						var mapping = {
 //							'ember/features' : 'features.js',
-							'./config/environment': 'config.js',
+//							'./config/environment': 'config.js',
 //							'ember': '../bower_components/ember/ember.js',
 							//'ember': '../vendor/ember-cli-bundle-rollup/ember.js',
 //							'ember-load-initializers': '..ember-load-initializers/index.js',
