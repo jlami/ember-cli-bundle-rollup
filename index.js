@@ -109,7 +109,7 @@ EmberApp.prototype.javascript = function() {
 						root = path.resolve(baseurl, '..');
 						options.banner = 'window.EmberENV = {"FEATURES":{}};' + fs.readFileSync(path.resolve(baseurl, '../vendor/loader/loader.js'));
 						options.banner += fs.readFileSync(require.resolve('jquery'));
-						options.footer = 'var testes6app = testes6.create({"name":"test-es6","version":"0.0.0+2f11d37b"});';
+						options.footer = "var testes6app = testes6['default'].create(testes6.config.APP || {});";
 						return options;
 					},
 					resolveId: function(id, loader) {
