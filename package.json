@@ -61,7 +61,7 @@
       "ember-cli-preprocess-registry": "^3.0.0",
       "glimmer-engine": "^0.19.2",
       "route-recognizer": "^0.2.8",
-      "router_js": "^1.2.4",
+      "router_js": "^1.2.4"
   },
   "ember-addon": {
     "configPath": "tests/dummy/config"
